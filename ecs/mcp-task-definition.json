@@ -1,0 +1,40 @@
+{
+  "family": "rag-mcp-server",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ragMcpTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "mcp-server",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/rag-mcp-server:VERSION",
+      "essential": true,
+      "portMappings": [
+        {"name": "mcp-http", "containerPort": 8080, "hostPort": 8080, "protocol": "tcp", "appProtocol": "http"}
+      ],
+      "environment": [
+        {"name": "RAG_API_URL", "value": "http://rag-api:9000"},
+        {"name": "PIPELINE_API_URL", "value": "http://pipeline-api:9001"},
+        {"name": "MCP_ALLOWED_HOSTS", "value": "mcp-server:8080,localhost:8080,127.0.0.1:8080"},
+        {"name": "PYTHONUNBUFFERED", "value": "1"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/rag-mcp-server",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "mcp"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8080),timeout=2); s.close()\" || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      }
+    }
+  ]
+}

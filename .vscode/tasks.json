@@ -1,0 +1,134 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Setup Development Environment",
+      "type": "shell",
+      "command": "./setup.sh",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Create Virtual Environment",
+      "type": "shell",
+      "command": "python3 -m venv venv",
+      "problemMatcher": []
+    },
+    {
+      "label": "Activate Virtual Environment",
+      "type": "shell",
+      "command": "source venv/bin/activate",
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "pip install -r requirements-dev.txt",
+      "problemMatcher": []
+    },
+    {
+      "label": "Verify Dependencies",
+      "type": "shell",
+      "command": "python -c \"import uvicorn; import fastapi; print('Dependencies installed successfully!')\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose: up",
+      "type": "shell",
+      "command": "docker-compose up --build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "docker-compose: down",
+      "type": "shell",
+      "command": "docker-compose down",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose: logs",
+      "type": "shell",
+      "command": "docker-compose logs -f",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "pytest",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "^.*$",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": false,
+            "beginsPattern": ".*",
+            "endsPattern": ".*"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Start All Services Locally",
+      "dependsOn": [
+        "Start Mock RAG API",
+        "Start Mock Pipeline API",
+        "Start MCP Server",
+        "Start Agent Service"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Mock RAG API",
+      "type": "shell",
+      "command": "uvicorn mock-backends.rag_api:app --host 0.0.0.0 --port 9000 --reload",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Mock Pipeline API",
+      "type": "shell",
+      "command": "uvicorn mock-backends.pipeline_api:app --host 0.0.0.0 --port 9001 --reload",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start MCP Server",
+      "type": "shell",
+      "command": "uvicorn mcp-server.app:app --host 0.0.0.0 --port 8080 --reload",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Agent Service",
+      "type": "shell",
+      "command": "uvicorn agent-service.app:app --host 0.0.0.0 --port 8000 --reload",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Streamlit UI",
+      "type": "shell",
+      "command": "streamlit run streamlit-ui/app.py --server.port 8501 --server.address localhost",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

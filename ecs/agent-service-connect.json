@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "namespace": "rag.internal",
+  "services": [
+    {
+      "portName": "agent-http",
+      "discoveryName": "agent-service",
+      "clientAliases": [{"port": 8000, "dnsName": "agent-service"}]
+    }
+  ]
+}

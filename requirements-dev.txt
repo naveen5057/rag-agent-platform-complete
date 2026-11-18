@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+httpx
+mcp[cli]>=1.26,<2
+langgraph
+langchain-aws
+langchain-mcp-adapters
+boto3
+python-dotenv
+pytest
+
+pytest-asyncio
+streamlit>=1.28.0

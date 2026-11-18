@@ -1,0 +1,202 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Agent Service (FastAPI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "agent-service.app:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "AGENT_MODE": "bedrock",
+        "LOG_LEVEL": "DEBUG",
+        "MCP_SERVER_URL": "http://localhost:8080/mcp"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "MCP Server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "mcp-server.app:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "RAG_API_URL": "http://localhost:9000",
+        "PIPELINE_API_URL": "http://localhost:9001",
+        "LOG_LEVEL": "DEBUG",
+        "MCP_ALLOWED_HOSTS": "localhost:8080,127.0.0.1:8080"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "Mock RAG API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "mock-backends.rag_api:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "9000",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "LOG_LEVEL": "DEBUG"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "Mock Pipeline API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "mock-backends.pipeline_api:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "9001",
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "LOG_LEVEL": "DEBUG"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "Python: Run Script",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/${relativeFileDirname}/${fileBasenameNoExtension}.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    },
+    {
+      "name": "Docker Compose: All Services",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-compose: up",
+      "dockerCompose": {
+        "up": {
+          "detached": false,
+          "build": true
+        },
+        "down": {
+          "removeVolumes": true
+        }
+      },
+      "postDebugTask": "docker-compose: down"
+    },
+    {
+      "name": "Python: Attach",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Streamlit UI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "streamlit",
+      "args": [
+        "run",
+        "streamlit-ui/app.py",
+        "--server.port",
+        "8501",
+        "--server.address",
+        "localhost"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "AGENT_SERVICE_URL": "http://localhost:8000",
+        "MCP_SERVER_URL": "http://localhost:8080"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "python": "${workspaceFolder}/venv/bin/python"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Local Services",
+      "configurations": [
+        "Mock RAG API",
+        "Mock Pipeline API",
+        "MCP Server",
+        "Agent Service (FastAPI)"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Full Stack (Mock Backends + MCP + Agent)",
+      "configurations": [
+        "Mock RAG API",
+        "Mock Pipeline API",
+        "MCP Server",
+        "Agent Service (FastAPI)"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Backend Services Only",
+      "configurations": [
+        "Mock RAG API",
+        "Mock Pipeline API",
+        "MCP Server"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Complete Platform with UI",
+      "configurations": [
+        "Mock RAG API",
+        "Mock Pipeline API",
+        "MCP Server",
+        "Agent Service (FastAPI)",
+        "Streamlit UI"
+      ],
+      "stopAll": true
+    }
+  ]
+}

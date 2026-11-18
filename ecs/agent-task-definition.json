@@ -1,0 +1,41 @@
+{
+  "family": "rag-agent-service",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ragAgentTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "agent-service",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/rag-agent-service:VERSION",
+      "essential": true,
+      "portMappings": [
+        {"name": "agent-http", "containerPort": 8000, "hostPort": 8000, "protocol": "tcp", "appProtocol": "http"}
+      ],
+      "environment": [
+        {"name": "AWS_REGION", "value": "us-east-1"},
+        {"name": "BEDROCK_MODEL_ID", "value": "REPLACE_WITH_APPROVED_MODEL_ID"},
+        {"name": "MCP_SERVER_URL", "value": "http://mcp-server:8080/mcp"},
+        {"name": "AGENT_MODE", "value": "bedrock"},
+        {"name": "PYTHONUNBUFFERED", "value": "1"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/rag-agent-service",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "agent"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3).read()\" || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

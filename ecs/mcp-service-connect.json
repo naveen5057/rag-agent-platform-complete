@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "namespace": "rag.internal",
+  "services": [
+    {
+      "portName": "mcp-http",
+      "discoveryName": "mcp-server",
+      "clientAliases": [{"port": 8080, "dnsName": "mcp-server"}]
+    }
+  ]
+}

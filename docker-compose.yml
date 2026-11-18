@@ -1,0 +1,103 @@
+services:
+  rag-mock:
+    build:
+      context: .
+      dockerfile: mock-backends/Dockerfile
+    command: ["uvicorn", "rag_api:app", "--host", "0.0.0.0", "--port", "9000"]
+    ports:
+      - "127.0.0.1:9000:9000"
+    networks:
+      - internal-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  pipeline-mock:
+    build:
+      context: .
+      dockerfile: mock-backends/Dockerfile
+    command: ["uvicorn", "pipeline_api:app", "--host", "0.0.0.0", "--port", "9001"]
+    ports:
+      - "127.0.0.1:9001:9001"
+    networks:
+      - internal-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9001/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: mcp-server/Dockerfile
+    environment:
+      RAG_API_URL: http://rag-mock:9000
+      PIPELINE_API_URL: http://pipeline-mock:9001
+      MCP_ALLOWED_HOSTS: "mcp-server:8080,localhost:8080,127.0.0.1:8080"
+    depends_on:
+      rag-mock:
+        condition: service_healthy
+      pipeline-mock:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - internal-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8080),timeout=2); s.close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  agent-service:
+    build:
+      context: .
+      dockerfile: agent-service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      AGENT_MODE: ${AGENT_MODE:-mock}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-REPLACE_WITH_APPROVED_MODEL_ID}
+      MCP_SERVER_URL: http://mcp-server:8080/mcp
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - internal-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3).read()"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 60s
+
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: streamlit-ui/Dockerfile
+    environment:
+      AGENT_SERVICE_URL: http://agent-service:8000
+      MCP_SERVER_URL: http://mcp-server:8080
+    depends_on:
+      agent-service:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8501:8501"
+    networks:
+      - internal-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://127.0.0.1:8501/_stcore/health', timeout=2)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+networks:
+  internal-network:
+    driver: bridge
